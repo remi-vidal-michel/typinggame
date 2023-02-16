@@ -18,10 +18,10 @@ aimer
 mimi
 absenteisme
 nonobstant
-machiavélique
+machiavelique
 pitoyable
-pirottoresque
-résiduel
+pittoresque
+residuel
 voyage
 vacances
 amicalement
@@ -30,7 +30,7 @@ hasard
 spectaculaire
 protagoniste
 illusoire
-dérisoire
+derisoire
 avantageux
 cataclysme
 catastrophique
@@ -42,9 +42,9 @@ figatellu
 aberrant
 verveine
 vampire
-méticuleusement
-arborescence 
-généalogie
+meticuleusement
+arborescence
+genealogie
 imputation
 gratifiant
 chevaleresque

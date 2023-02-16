@@ -5,28 +5,37 @@ pygame.init()
 pygame.display.set_caption("Typing Game")
 screen = pygame.display.set_mode((480, 720))
 
-bg = pygame.image.load("assets/wallpaper.png")
-resized_bg = pygame.transform.scale(bg, (480, 720))
-bg_alt = pygame.image.load("assets/wallpaper_alt.png")
-resized_bg_alt = pygame.transform.scale(bg_alt, (480, 720))
+bg = pygame.image.load("assets/wallpaper_alt.png")
+bg_alt = pygame.image.load("assets/wallpaper.png")
+heart = pygame.transform.scale(pygame.image.load("assets/heart.png"), (50, 50))
 
-font = pygame.font.Font("assets/MatchupPro.otf", 70)
+
+font = pygame.font.Font("assets/MatchupPro.otf", 66)
 white = (255, 255, 255)
+green = (0, 128, 0)
 
-word_speed = 0.5
+life = 3
+meter = 0
+lines = open("words.txt").read().splitlines()
+next_word = random.choice(lines)
+
+# def options():
+    
+# def score():
 
 def new_word():
-    global active_word, pressed_word, lines, text, text_rect, word_Y, word_speed 
-    word_Y = 0
-    word_speed += 0.1
+    global next_word, pressed_word, lines, text, text_rect, count, count_rect, active_word
     pressed_word = ""
-    lines = open("words.txt").read().splitlines()
-    active_word = random.choice(lines)
-    text = font.render(active_word, True, white)
+    active_word = next_word
+    next_word = random.choice(lines)
+    text = font.render(next_word, True, white)
     text_rect = text.get_rect()
+    count = font.render(str(meter), True, white)
+    count_rect = count.get_rect()
 
 def main_menu():
-    screen.blit(resized_bg, (0, 0))
+    global life
+    screen.blit(bg, (0, 0))
     title_text = font.render("TYPING GAME", True, white)
     title_rect = title_text.get_rect()
     title_rect.center = (screen.get_width() // 2, screen.get_height() // 4)
@@ -58,8 +67,10 @@ def main_menu():
     new_word()
 
 main_menu()
+
 clock = pygame.time.Clock()
 running = True
+
 while running:
 
     for event in pygame.event.get():
@@ -72,17 +83,33 @@ while running:
             if typed_key == active_word[len(pressed_word)]:
                 pressed_word += typed_key
                 if active_word == pressed_word:
+                    meter += len(active_word)
                     new_word()
             else:
                 pressed_word = ""
+                life -= 1
     
-    screen.blit(resized_bg_alt, (0, 0))
-    word_Y += word_speed
-    if word_Y > 720:
+    screen.blit(bg_alt, (0, 0))
+    for i in range(0, life):
+        screen.blit(heart, (20 + i * 60, 20))
+    next_surface = font.render(next_word, True, white)
+    next_rect = next_surface.get_rect()
+    next_rect.center = (screen.get_width() // 2, 200)
+    screen.blit(next_surface, next_rect)
+    for i, letter in enumerate(active_word):
+        if i < len(pressed_word):
+            color = green
+        else:
+            color = white
+        letter_surface = font.render(letter, True, color)
+        letter_rect = letter_surface.get_rect()
+        letter_rect.center = (screen.get_width() // 2 - len(active_word) * 14 + i * 30, 400)
+        screen.blit(letter_surface, letter_rect)
+    if life == 0:
         main_menu()
-        word_speed = 0.5
-    text_rect.center = (screen.get_width() // 2, word_Y)
-    screen.blit(text, text_rect)
+    count_rect.center = (420, 40)
+    screen.blit(count,count_rect)
+
     pygame.display.update()
 
     clock.tick(60)
