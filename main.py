@@ -1,17 +1,21 @@
-import pygame, random
-
+import pygame, random, spritesheet
 pygame.init()
 
 pygame.display.set_caption("Typing Game")
-screen = pygame.display.set_mode((480, 720))
+screen = pygame.display.set_mode((900, 500))
 
-bg = pygame.image.load("assets/wallpaper_alt.png")
-bg_alt = pygame.image.load("assets/wallpaper.png")
-heart = pygame.transform.scale(pygame.image.load("assets/heart.png"), (50, 50))
+bg = pygame.image.load("assets/wallpaper.png")
+bg_alt = pygame.image.load("assets/wallpaper_alt.png")
+heart = pygame.transform.scale(pygame.image.load("assets/heart.png"), (40, 40))
 
+spritesheet_img = pygame.image.load("assets/necromancer.png").convert_alpha()
+sprite_sheet = spritesheet.SpriteSheet(spritesheet_img)
 
-font = pygame.font.Font("assets/MatchupPro.otf", 66)
+font = pygame.font.Font("assets/MatchupPro.otf", 50)
+big_font = pygame.font.Font("assets/MatchupPro.otf", 80)
+small_font = pygame.font.Font("assets/MatchupPro.otf", 40)
 white = (255, 255, 255)
+black = (0, 0, 0)
 green = (0, 128, 0)
 
 life = 3
@@ -36,19 +40,15 @@ def new_word():
 def main_menu():
     global life
     screen.blit(bg, (0, 0))
-    title_text = font.render("TYPING GAME", True, white)
-    title_rect = title_text.get_rect()
-    title_rect.center = (screen.get_width() // 2, screen.get_height() // 4)
-    screen.blit(title_text, title_rect)
 
-    play_text = font.render("PLAY", True, white)
+    play_text = big_font.render("PLAY", True, white)
     play_rect = play_text.get_rect()
-    play_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+    play_rect.center = (screen.get_width() // 3, screen.get_height() // 1.5)
     screen.blit(play_text, play_rect)
 
-    quit_text = font.render("QUIT", True, white)
+    quit_text = big_font.render("QUIT", True, white)
     quit_rect = quit_text.get_rect()
-    quit_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + play_rect.height)
+    quit_rect.center = (screen.get_width() // 1.5, screen.get_height() // 1.5)
     screen.blit(quit_text, quit_rect)
 
     pygame.display.update()
@@ -67,6 +67,16 @@ def main_menu():
     new_word()
 
 main_menu()
+
+# animations
+necro_idle_list = []
+necro_idle_frames = 8
+update = pygame.time.get_ticks()
+animation_cd = 250
+frames = 0
+
+for frame in range (necro_idle_frames):
+    necro_idle_list.append(sprite_sheet.get_image(frame, 160, 128, 3, black))
 
 clock = pygame.time.Clock()
 running = True
@@ -90,9 +100,21 @@ while running:
                 life -= 1
     
     screen.blit(bg_alt, (0, 0))
-    for i in range(0, life):
-        screen.blit(heart, (20 + i * 60, 20))
-    next_surface = font.render(next_word, True, white)
+
+    current_time = pygame.time.get_ticks()
+
+    if current_time - update >= animation_cd:
+        frames += 1
+        update = current_time
+        if frames >= len(necro_idle_list):
+            frames = 0
+
+    screen.blit(necro_idle_list[frames], (-150, 100))
+
+    for hearts in range(life):
+        screen.blit(heart, (20 + hearts * 50, 20))
+    
+    next_surface = small_font.render(next_word, True, white)
     next_rect = next_surface.get_rect()
     next_rect.center = (screen.get_width() // 2, 200)
     screen.blit(next_surface, next_rect)
@@ -101,13 +123,13 @@ while running:
             color = green
         else:
             color = white
-        letter_surface = font.render(letter, True, color)
+        letter_surface = small_font.render(letter, True, color)
         letter_rect = letter_surface.get_rect()
-        letter_rect.center = (screen.get_width() // 2 - len(active_word) * 14 + i * 30, 400)
+        letter_rect.center = (screen.get_width() // 2 - len(active_word) * 7.5 + i * 17, screen.get_height() // 2)
         screen.blit(letter_surface, letter_rect)
     if life == 0:
         main_menu()
-    count_rect.center = (420, 40)
+    count_rect.center = (screen.get_width() // 1.05, 25)
     screen.blit(count,count_rect)
 
     pygame.display.update()
