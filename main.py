@@ -23,7 +23,6 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 blue = (21, 21, 47)
 
-life = 5
 meter = 0
 lines = open("words.txt").read().splitlines()
 short_list = [word for word in lines if len(word) < 6]
@@ -220,11 +219,10 @@ while running:
         letter_surface = big_font.render(letter, True, color)
         letter_rect = letter_surface.get_rect()
         letter_rect.center = (screen.get_width(
-        ) // 2 - len(active_word) * 14 + i * 34, screen.get_height() // 2)
+        ) // 2 - len(active_word) * 12 + i * 34, screen.get_height() // 2)
         screen.blit(letter_surface, letter_rect)
     if life == 0:
         main_menu()
-        life = 10
     count_rect.center = (screen.get_width() // 1.05, 25)
     screen.blit(count, count_rect)
 
