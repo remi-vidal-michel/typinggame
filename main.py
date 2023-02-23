@@ -1,7 +1,9 @@
 import pygame
 import random
 import spritesheet
+
 pygame.init()
+pygame.mixer.init()
 
 pygame.display.set_caption("Typing Game")
 screen = pygame.display.set_mode((900, 500))
@@ -15,6 +17,15 @@ spritesheet_img = pygame.image.load("assets/necromancer.png").convert_alpha()
 sprite_sheet = spritesheet.SpriteSheet(spritesheet_img)
 ghost_img = pygame.image.load("assets/ghost-idle.png").convert_alpha()
 ghost_sheet = spritesheet.SpriteSheet(ghost_img)
+
+enemy_defeated = pygame.mixer.Sound("assets\enemy-defeated.mp3")
+word_completed = pygame.mixer.Sound("assets\word-completed.mp3")
+miss = pygame.mixer.Sound("assets\miss.mp3")
+hit = pygame.mixer.Sound("assets\hit.mp3")
+pygame.mixer.music.set_volume(0.3)
+enemy_defeated.set_volume(0.5)
+hit.set_volume(0.5)
+
 
 font = pygame.font.Font("assets/MatchupPro.otf", 50)
 big_font = pygame.font.Font("assets/MatchupPro.otf", 80)
@@ -76,6 +87,8 @@ def options():
                     difficulty = 8
                     next_word = random.choice(long_list)
                     options = False
+    pygame.mixer.music.load("assets\game-music.mp3")
+    pygame.mixer.music.play()
     new_word()
     monster()
 
@@ -86,9 +99,10 @@ def monster():
     global monster_life, monster_cd, monster_maxpv, loading_bar_width
     monster_life = random.randint(3, 5)
     monster_maxpv = monster_life
-    print("vie : ", monster_maxpv)
+    print("VIE : ", monster_maxpv)
     monster_cd = 0
     loading_bar_width = 900
+    pygame.display.update()
 
 
 def new_word():
@@ -110,6 +124,9 @@ def new_word():
 def main_menu():
     global life
     screen.blit(bg, (0, 0))
+
+    pygame.mixer.music.load("assets\menu-music.mp3")
+    pygame.mixer.music.play()
 
     play_text = big_font.render("PLAY", True, white)
     play_rect = play_text.get_rect()
@@ -168,9 +185,11 @@ while running:
                 if active_word == pressed_word:
                     meter += len(active_word)
                     new_word()
+                    word_completed.play()
                     monster_life -= 1
             else:
                 pressed_word = ""
+                miss.play()
 
     screen.blit(bg_alt, (0, 0))
 
@@ -181,16 +200,17 @@ while running:
         loading_bar_width -= 900 / (monster_maxpv * difficulty)
         monster_cd += 1
         update = current_time
-        print(monster_cd, monster_life)
         if frames >= 7:
             frames = 0
         if monster_cd == monster_maxpv * difficulty:
             life -= 1
             monster()
+            hit.play()
         if monster_life == 0:
             meter += monster_maxpv * (20 - difficulty)
             print("KILL")
             monster()
+            enemy_defeated.play()
 
     screen.blit(necro_idle_list[frames], (-150, 100))
     screen.blit(ghost_idle_list[frames], (650, 230))
