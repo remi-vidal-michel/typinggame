@@ -27,6 +27,7 @@ lines = open("words.txt").read().splitlines()
 next_word = random.choice(lines)
 monster_cd = 0
 monster_life = 100
+progress_bar_rect = pygame.Rect(50, 50, 300, 20)
 
 # def options():
     
@@ -125,10 +126,11 @@ while running:
         print(monster_cd, monster_life)
         if frames >= 7:
             frames = 0
-        if monster_cd == monster_timer * 5:
+        if monster_cd == monster_timer * 10:
             life -= 1
             monster()
         if monster_life == 0:
+            meter += monster_timer * 10
             print("KILL")
             monster()
 
@@ -152,7 +154,7 @@ while running:
             color = white
         letter_surface = big_font.render(letter, True, color)
         letter_rect = letter_surface.get_rect()
-        letter_rect.center = (screen.get_width() // 2 - len(active_word) * 15 + i * 33, screen.get_height() // 2)
+        letter_rect.center = (screen.get_width() // 2 - len(active_word) * 14 + i * 34, screen.get_height() // 2)
         screen.blit(letter_surface, letter_rect)
     if life == 0:
         main_menu()
