@@ -8,41 +8,70 @@ pygame.mixer.init()
 pygame.display.set_caption("Typing Game")
 screen = pygame.display.set_mode((900, 500))
 
+# static images load
 bg = pygame.image.load("assets/wallpaper.png")
 bg_alt = pygame.image.load("assets/wallpaper_alt.png")
 heart = pygame.transform.scale(pygame.image.load("assets/heart.png"), (40, 40))
 small_heart = pygame.transform.scale(heart, (20, 20))
+logo = pygame.transform.scale(pygame.image.load("assets/logo.png"), (400, 280))
+loading_bar = pygame.image.load("assets/loading-bar.png")
 
+# animated sprites load
 spritesheet_img = pygame.image.load("assets/necromancer.png").convert_alpha()
 sprite_sheet = spritesheet.SpriteSheet(spritesheet_img)
 ghost_img = pygame.image.load("assets/ghost-idle.png").convert_alpha()
 ghost_sheet = spritesheet.SpriteSheet(ghost_img)
+demon_img = pygame.image.load("assets/demon-idle.png").convert_alpha()
+demon_sheet = spritesheet.SpriteSheet(demon_img)
 
+# sounds load
 enemy_defeated = pygame.mixer.Sound("assets\enemy-defeated.mp3")
 word_completed = pygame.mixer.Sound("assets\word-completed.mp3")
 miss = pygame.mixer.Sound("assets\miss.mp3")
 hit = pygame.mixer.Sound("assets\hit.mp3")
+
+# volume set for sounds
 pygame.mixer.music.set_volume(0.3)
 enemy_defeated.set_volume(0.5)
 hit.set_volume(0.5)
 
-
+# font init
 font = pygame.font.Font("assets/MatchupPro.otf", 50)
 big_font = pygame.font.Font("assets/MatchupPro.otf", 80)
 small_font = pygame.font.Font("assets/MatchupPro.otf", 40)
+
+# color init
 white = (255, 255, 255)
 black = (0, 0, 0)
 blue = (21, 21, 47)
 
-meter = 0
+# words lists
 lines = open("words.txt").read().splitlines()
 short_list = [word for word in lines if len(word) < 6]
 long_list = [word for word in lines if len(word) > 4]
+
 monster_cd = 0
 monster_life = 100
-loading_bar = pygame.image.load("assets/loading-bar.png")
 loading_bar_rect = loading_bar.get_rect(midleft=(280, 360))
 
+# animations lists
+necro_idle_list = []
+ghost_idle_list = []
+demon_idle_list = []
+
+update = pygame.time.get_ticks()
+animation_cd = 250
+frames = 0
+
+for frame in range(6):
+    necro_idle_list.append(sprite_sheet.get_image(frame, 160, 128, 3, black))
+    ghost_idle_list.append(ghost_sheet.get_image(frame, 64, 80, 3, black))
+    demon_idle_list.append(demon_sheet.get_image(frame, 160, 144, 3, black))
+
+clock = pygame.time.Clock()
+running = True
+
+# functions 
 def options():
     global life, difficulty, next_word
     screen.blit(bg, (0, 0))
@@ -73,9 +102,8 @@ def options():
                 mouse_pos = pygame.mouse.get_pos()
                 if easy_rect.collidepoint(mouse_pos):
                     life = 5
-                    difficulty = 12
+                    difficulty = 20
                     next_word = random.choice(short_list)
-                    print(short_list)
                     options = False
                 if normal_rect.collidepoint(mouse_pos):
                     life = 4
@@ -88,22 +116,17 @@ def options():
                     next_word = random.choice(long_list)
                     options = False
     pygame.mixer.music.load("assets\game-music.mp3")
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
     new_word()
-    monster()
+    new_monster()
 
-# def score():
-
-
-def monster():
-    global monster_life, monster_cd, monster_maxpv, loading_bar_width
-    monster_life = random.randint(3, 5)
-    monster_maxpv = monster_life
-    print("VIE : ", monster_maxpv)
+def new_monster():
+    global monster_life, monster_cd, monster_maxpv, loading_bar_width, boss_prob
+    monster_maxpv = random.randint(3, 5)
+    monster_life = monster_maxpv
     monster_cd = 0
-    loading_bar_width = 900
-    pygame.display.update()
-
+    loading_bar_width = 900    
+    boss_prob = random.randint(0, difficulty)
 
 def new_word():
     global next_word, pressed_word, lines, text, text_rect, count, count_rect, active_word
@@ -120,13 +143,14 @@ def new_word():
     count = font.render(str(meter), True, white)
     count_rect = count.get_rect()
 
-
 def main_menu():
-    global life
+    global life, meter
+    meter = 0
     screen.blit(bg, (0, 0))
+    screen.blit(logo, (250, 50))
 
     pygame.mixer.music.load("assets\menu-music.mp3")
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
     play_text = big_font.render("PLAY", True, white)
     play_rect = play_text.get_rect()
@@ -153,31 +177,14 @@ def main_menu():
                     pygame.quit()
     options()
 
-
 main_menu()
 
-# animations
-necro_idle_list = []
-ghost_idle_list = []
-update = pygame.time.get_ticks()
-animation_cd = 250
-frames = 0
-
-for frame in range(0, 8):
-    necro_idle_list.append(sprite_sheet.get_image(frame, 160, 128, 3, black))
-for frame in range(0, 7):
-    ghost_idle_list.append(ghost_sheet.get_image(frame, 64, 80, 3, black))
-
-clock = pygame.time.Clock()
-running = True
-
+# game loop
 while running:
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             pygame.quit()
-
         elif event.type == pygame.KEYDOWN:
             typed_key = pygame.key.name(event.key)
             if typed_key == active_word[len(pressed_word)]:
@@ -200,20 +207,23 @@ while running:
         loading_bar_width -= 900 / (monster_maxpv * difficulty)
         monster_cd += 1
         update = current_time
-        if frames >= 7:
+        if frames >= 6:
             frames = 0
         if monster_cd == monster_maxpv * difficulty:
             life -= 1
-            monster()
+            new_monster()
             hit.play()
         if monster_life == 0:
             meter += monster_maxpv * (20 - difficulty)
-            print("KILL")
-            monster()
+            new_monster()
             enemy_defeated.play()
 
     screen.blit(necro_idle_list[frames], (-150, 100))
-    screen.blit(ghost_idle_list[frames], (650, 230))
+    if boss_prob > 1:
+        screen.blit(ghost_idle_list[frames], (700, 230))
+    else:
+        screen.blit(demon_idle_list[frames], (600, 50))
+
 
     loading_bar = pygame.transform.scale(
         loading_bar, (int(loading_bar_width), 150))
@@ -224,8 +234,8 @@ while running:
         screen.blit(heart, (20 + hearts * 50, 20))
 
     for hearts in range(monster_life):
-        screen.blit(small_heart, (screen.get_width() // 1.19 -
-                    monster_maxpv * 15 + hearts * 25, 260))
+        screen.blit(small_heart, (screen.get_width() // 1.12 -
+                    monster_maxpv * 15 + hearts * 27, 260))
 
     next_surface = small_font.render(next_word, True, white)
     next_rect = next_surface.get_rect()
@@ -239,7 +249,7 @@ while running:
         letter_surface = big_font.render(letter, True, color)
         letter_rect = letter_surface.get_rect()
         letter_rect.center = (screen.get_width(
-        ) // 2 - len(active_word) * 12 + i * 34, screen.get_height() // 2)
+        ) // 2 - len(active_word) * 13 + i * 34, screen.get_height() // 2)
         screen.blit(letter_surface, letter_rect)
     if life == 0:
         main_menu()
