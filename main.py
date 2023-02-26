@@ -60,10 +60,6 @@ lines = open("words.txt").read().splitlines()
 short_list = [word for word in lines if len(word) < 6]
 long_list = [word for word in lines if len(word) > 4]
 
-monster_cd = 0
-monster_life = 100
-loading_bar_rect = loading_bar.get_rect(midleft=(280, 360))
-
 # animations lists
 necro_idle_list = []
 necro_atk_list = []
@@ -73,12 +69,6 @@ demon_idle_list = []
 demon_burn_list = []
 raindrops = []
 
-update = pygame.time.get_ticks()
-animation_cd = 250
-frames = 0
-kill = 0
-boss_prob = 0
-
 for frame in range(6):
     necro_idle_list.append(necro_sheet.get_image(frame, 160, 128, 3, black))
     necro_atk_list.append(necro_atk_sheet.get_image((2 * frame), 160, 128, 3, black))
@@ -87,6 +77,15 @@ for frame in range(6):
     demon_idle_list.append(demon_sheet.get_image(frame, 55, 67, 3, black))
     demon_burn_list.append(demon_burn_sheet.get_image(frame, 74, 160, 3, black))
 
+# var init
+monster_cd = 0
+frames = 0
+kill = 0
+boss_prob = 0
+monster_life = 1
+animation_cd = 250
+
+update = pygame.time.get_ticks()
 clock = pygame.time.Clock()
 running = True
 
@@ -220,6 +219,7 @@ while running:
 
     screen.blit(bg_alt, (0, 0))
 
+    # rain section
     if len(raindrops) == 0:
         raindrops.clear()
         for i in range(50):
@@ -236,28 +236,33 @@ while running:
             raindrop[1] = random.randrange(-50, -5)
             raindrop[0] += random.randint(-50, 50)
 
+    # time progression
     current_time = pygame.time.get_ticks()
-
     if current_time - update >= animation_cd:
         frames += 1
         loading_bar_width -= 900 / (monster_maxpv * difficulty)
         monster_cd += 1
         update = current_time
-        if frames >= 6:
-            frames = 0
-            kill = 0
-        if monster_cd == monster_maxpv * difficulty:
-            life -= 1
-            new_word()
-            new_monster()
-            hit.play()
-        if monster_life == 0:
-            meter += monster_maxpv * (20 - difficulty)
-            new_monster()
-            enemy_defeated.play()            
-            kill = 1
-            frames = 0
+    if frames == 6:
+        frames = 0
+        kill = 0
 
+    # monster atk
+    if monster_cd == monster_maxpv * difficulty:
+        life -= 1
+        new_word()
+        new_monster()
+        hit.play()
+
+    # kill monster
+    if monster_life == 0:
+        meter += monster_maxpv * (20 - difficulty)
+        new_monster()
+        enemy_defeated.play()            
+        kill = 1
+        frames = 0
+
+    # animation sprite
     if kill == 1:
         screen.blit(necro_atk_list[frames], (-150, 100))
         if actual_mob > 1:
@@ -271,18 +276,20 @@ while running:
         else:
             screen.blit(ghost_idle_list[frames], (700, 230))
 
+    # monster atk countdown
     loading_bar = pygame.transform.scale(
         loading_bar, (int(loading_bar_width), 150))
     loading_bar_rect = loading_bar.get_rect(midleft=(0, 550))
     screen.blit(loading_bar, loading_bar_rect)
 
+    # hearts
     for hearts in range(life):
         screen.blit(heart, (20 + hearts * 50, 20))
-
     for hearts in range(monster_life):
         screen.blit(small_heart, (screen.get_width() // 1.12 -
                     monster_maxpv * 15 + hearts * 27, 260))
 
+    # words display
     next_surface = small_font.render(next_word, True, white)
     next_rect = next_surface.get_rect()
     next_rect.center = (screen.get_width() // 2, 200)
@@ -297,10 +304,12 @@ while running:
         letter_rect.center = (screen.get_width(
         ) // 2 - len(active_word) * 13 + i * 34, screen.get_height() // 2)
         screen.blit(letter_surface, letter_rect)
-    if life == 0:
-        main_menu()
     count_rect.center = (screen.get_width() // 1.05, 25)
     screen.blit(count, count_rect)
+    
+    # game over
+    if life == 0:
+        main_menu()
 
     pygame.display.update()
 
