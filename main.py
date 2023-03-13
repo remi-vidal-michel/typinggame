@@ -1,7 +1,5 @@
 # imports
-import pygame
-import random
-import spritesheet
+import pygame, random, spritesheet
 
 # pygame init
 pygame.init()
@@ -34,10 +32,10 @@ demon_burn_img = pygame.image.load("assets/hell-beast-burn.png").convert_alpha()
 demon_burn_sheet = spritesheet.SpriteSheet(demon_burn_img)
 
 # sounds load
-enemy_defeated = pygame.mixer.Sound("assets\enemy-defeated.mp3")
-word_completed = pygame.mixer.Sound("assets\word-completed.mp3")
-miss = pygame.mixer.Sound("assets\miss.mp3")
-hit = pygame.mixer.Sound("assets\hit.mp3")
+enemy_defeated = pygame.mixer.Sound("assets/enemy-defeated.mp3")
+word_completed = pygame.mixer.Sound("assets/word-completed.mp3")
+miss = pygame.mixer.Sound("assets/miss.mp3")
+hit = pygame.mixer.Sound("assets/hit.mp3")
 
 # volume set for sounds
 pygame.mixer.music.set_volume(0.3)
@@ -83,7 +81,7 @@ frames = 0
 kill = 0
 boss_prob = 0
 monster_life = 1
-animation_cd = 250
+animation_cd = 150
 
 update = pygame.time.get_ticks()
 clock = pygame.time.Clock()
@@ -133,7 +131,7 @@ def options():
                     difficulty = 8
                     next_word = random.choice(long_list)
                     options = False
-    pygame.mixer.music.load("assets\game-music.mp3")
+    pygame.mixer.music.load("assets/game-music.mp3")
     pygame.mixer.music.play(-1)
     new_word()
     new_monster()
@@ -168,7 +166,7 @@ def main_menu():
     screen.blit(bg, (0, 0))
     screen.blit(logo, (250, 50))
 
-    pygame.mixer.music.load("assets\menu-music.mp3")
+    pygame.mixer.music.load("assets/menu-music.mp3")
     pygame.mixer.music.play(-1)
 
     play_text = big_font.render("PLAY", True, orange)
@@ -199,11 +197,13 @@ def main_menu():
 main_menu()
 
 # game loop
-while running:
+while running:    
+    pygame.display.update()
+    clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            pygame.quit()
+            break
         elif event.type == pygame.KEYDOWN:
             typed_key = pygame.key.name(event.key)
             if typed_key == active_word[len(pressed_word)]:
@@ -224,7 +224,7 @@ while running:
         raindrops.clear()
         for i in range(50):
             x = random.randrange(0, 900)
-            y = random.randrange(0, 500//1.5)
+            y = random.randrange(0, 500)
             speed = random.randint(2, 3) + (5 - difficulty / 4)
             if speed > 10:
                 speed = 10
@@ -311,6 +311,4 @@ while running:
     if life == 0:
         main_menu()
 
-    pygame.display.update()
-
-    clock.tick(60)
+pygame.quit()
